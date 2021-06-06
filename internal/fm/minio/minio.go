@@ -23,19 +23,31 @@ func New(bucketName string, useSSL bool) (fm.FileManager, error) {
 	accessKeyID := os.Getenv("MINIO_ACCESS_KEY")
 	secretAccessKey := os.Getenv("MINIO_SECRET_KEY")
 	endpoint := os.Getenv("MINIO_ENDPOINT")
+	ctx := context.Background()
 
 	minioClient, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
 		Secure: useSSL,
 	})
-
 	if err != nil {
 		return nil, err
 	}
 
+	exists, err := minioClient.BucketExists(ctx, bucketName)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		if err := minioClient.MakeBucket(
+			ctx, bucketName, minio.MakeBucketOptions{}); err != nil {
+			return nil, err
+		}
+	}
+
 	return &Client{
 		minioClient: minioClient,
-		ctx:         context.Background(),
+		ctx:         ctx,
 		bucketName:  bucketName,
 	}, nil
 }

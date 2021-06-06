@@ -1,22 +1,45 @@
 package main
 
 import (
-	"os"
-
-	"github.com/av1ppp/ceaser-media-server/internal/fm/minio"
+	"github.com/av1ppp/ceaser-media-server/internal/config"
+	"github.com/av1ppp/ceaser-media-server/internal/http"
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
+var conf *config.Config
+
 func init() {
-	os.Setenv("MINIO_ACCESS_KEY", ...)
-	os.Setenv("MINIO_SECRET_KEY", ...)
-	os.Setenv("MINIO_ENDPOINT", ...)
+	// Load config file
+	var err error
+
+	if conf, err = config.New("config.yaml"); err != nil {
+		logrus.Fatal(err)
+	}
+
+	loglevel, err := logrus.ParseLevel(conf.Log.Level)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	// Logger configuration
+	logrus.SetLevel(loglevel)
+	logrus.SetFormatter(&logrus.TextFormatter{
+		PadLevelText: true,
+	})
+
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		panic(err)
+	}
 }
 
 func main() {
-	myfm, err := minio.New("main-bucket", false)
-	if err != nil {
-		panic(err)
-	}
-	_ = myfm
+	serv := http.NewServer(conf)
+	logrus.Fatal(serv.ListenAndServe())
 
+	// myfm, err := minio.New("ceaser-media-server", false)
+	// if err != nil {
+	// 	panic(err)
+	// }
 }

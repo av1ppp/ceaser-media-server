@@ -3,19 +3,21 @@ package http
 import (
 	"net/http"
 
+	"github.com/av1ppp/ceaser-media-server/internal/config"
 	"github.com/go-chi/chi/v5"
+	"github.com/sirupsen/logrus"
 )
 
 type Server struct {
-	addr    string
 	handler *Handler
+	conf    *config.Config
 }
 
 // Creating new server.
-func NewServer(addr string) *Server {
+func NewServer(conf *config.Config) *Server {
 	return &Server{
-		addr:    addr,
 		handler: newHandler(),
+		conf:    conf,
 	}
 }
 
@@ -44,7 +46,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // ListenAndServe listens on the TCP network address addr and then
 // calls Serve with handler to handle requests on incoming connections.
 func (s *Server) ListenAndServe() error {
-	return http.ListenAndServe(s.addr, s.handler)
+	logrus.Debug("starting server on " + s.conf.Server.Addr)
+
+	return http.ListenAndServe(s.conf.Server.Addr, s.handler)
 }
 
 func sendStatus(w http.ResponseWriter, statusCode int) {

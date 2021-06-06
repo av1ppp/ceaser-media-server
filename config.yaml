@@ -1,0 +1,5 @@
+log:
+  level: debug # trace, debug, info, warn / warning, error, fatal, panic
+
+server:
+  addr: localhost:8080
