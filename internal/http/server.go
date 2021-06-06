@@ -12,7 +12,7 @@ type Server struct {
 }
 
 // Creating new server.
-func New(addr string) *Server {
+func NewServer(addr string) *Server {
 	return &Server{
 		addr:    addr,
 		handler: newHandler(),
@@ -28,6 +28,10 @@ func newHandler() *Handler {
 
 	r := chi.NewRouter()
 
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		sendStatus(w, http.StatusOK)
+	})
+
 	handler.mux = r
 
 	return handler
@@ -41,4 +45,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // calls Serve with handler to handle requests on incoming connections.
 func (s *Server) ListenAndServe() error {
 	return http.ListenAndServe(s.addr, s.handler)
+}
+
+func sendStatus(w http.ResponseWriter, statusCode int) {
+	w.WriteHeader(statusCode)
+	w.Write([]byte(http.StatusText(statusCode)))
+}
+
+func sendError(w http.ResponseWriter, statusCode int, err error) {
+	w.WriteHeader(statusCode)
+	w.Write([]byte(err.Error()))
 }
