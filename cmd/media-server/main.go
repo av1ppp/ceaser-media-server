@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/av1ppp/ceaser-media-server/internal/config"
 	"github.com/av1ppp/ceaser-media-server/internal/http"
+	"github.com/av1ppp/ceaser-media-server/internal/store/minpq"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
@@ -35,6 +36,12 @@ func init() {
 }
 
 func main() {
+	store, err := minpq.New()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	_ = store
+
 	serv := http.NewServer(conf)
 	logrus.Fatal(serv.ListenAndServe())
 

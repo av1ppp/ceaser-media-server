@@ -20,10 +20,14 @@ type Client struct {
 }
 
 func New(bucketName string, useSSL bool) (fm.FileManager, error) {
+	ctx := context.Background()
 	accessKeyID := os.Getenv("MINIO_ACCESS_KEY")
 	secretAccessKey := os.Getenv("MINIO_SECRET_KEY")
 	endpoint := os.Getenv("MINIO_ENDPOINT")
-	ctx := context.Background()
+
+	if endpoint == "" {
+		endpoint = "localhost:9000"
+	}
 
 	minioClient, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
