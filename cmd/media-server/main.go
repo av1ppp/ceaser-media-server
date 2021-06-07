@@ -42,7 +42,7 @@ func main() {
 	}
 	_ = store
 
-	serv := http.NewServer(conf)
+	serv := http.NewServer(conf, store)
 	logrus.Fatal(serv.ListenAndServe())
 
 	// myfm, err := minio.New("ceaser-media-server", false)
