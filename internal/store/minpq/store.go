@@ -5,55 +5,64 @@ package minpq
 import (
 	"database/sql"
 	"fmt"
-	"os"
 
+	"github.com/av1ppp/ceaser-media-server/internal/config"
+	"github.com/av1ppp/ceaser-media-server/internal/fm"
+	"github.com/av1ppp/ceaser-media-server/internal/fm/minio"
 	"github.com/av1ppp/ceaser-media-server/internal/store"
 	_ "github.com/lib/pq"
 )
 
 type Store struct {
+	fm              fm.FileManager
 	db              *sql.DB
 	videoRepository *videoRepository
 }
 
-func New() (store.Store, error) {
-	var (
-		user     = os.Getenv("DB_USER")
-		password = os.Getenv("DB_PASSWORD")
-		dbname   = os.Getenv("DB_NAME")
-		host     = os.Getenv("DB_HOST")
-		port     = os.Getenv("DB_PORT")
-	)
+func New(conf *config.Config) (store.Store, error) {
+	store := Store{}
 
-	if dbname == "" {
-		dbname = "ceaser_media_server"
+	if err := store.configureDatabase(conf.DB); err != nil {
+		return nil, err
 	}
 
-	if host == "" {
-		host = "localhost"
+	if err := store.configureFileManager(conf.Minio); err != nil {
+		return nil, err
 	}
 
-	if port == "" {
-		port = "5432"
+	store.videoRepository = &videoRepository{store: &store}
+
+	return &store, nil
+}
+
+// Конфигурация файлового менеджера (MinIO).
+func (s *Store) configureFileManager(conf config.MinioConfig) error {
+	fm_, err := minio.New(conf)
+	if err != nil {
+		return err
 	}
 
-	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s",
-		user, password, dbname, host, port)
+	s.fm = fm_
+	return nil
+}
+
+// Конфигурация базы данных (PostgreSQL).
+func (s *Store) configureDatabase(conf config.DBConfig) error {
+	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d",
+		conf.User, conf.Password, conf.DBName, conf.Host, conf.Port)
 
 	// Подключение к базе данных
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := db.Ping(); err != nil {
-		return nil, err
+		return err
 	}
 
-	store := Store{db: db}
-	store.videoRepository = &videoRepository{store: &store}
-
-	return &store, nil
+	s.db = db
+	return nil
 }
 
 func (s *Store) Video() store.VideoRepository {

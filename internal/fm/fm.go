@@ -13,12 +13,14 @@ type FileManager interface {
 	Remove(name string) error
 }
 
-type File interface {
-	io.Reader
-	io.ReaderAt
-	io.Seeker
-	io.Closer
-}
+// type File interface {
+// 	io.Reader
+// 	io.ReaderAt
+// 	io.Seeker
+// 	io.Closer
+// }
+
+type File io.ReadSeekCloser
 
 type DirEntry interface {
 	// Returning base filename

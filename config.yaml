@@ -3,3 +3,7 @@ log:
 
 server:
   addr: localhost:8080
+
+database:
+  user: avi
+  password: 2102

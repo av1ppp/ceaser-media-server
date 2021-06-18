@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/av1ppp/ceaser-media-server/internal/video"
@@ -22,8 +23,12 @@ func (s *Server) handleAddVideo(w http.ResponseWriter, r *http.Request) {
 
 	video := video.Video{
 		Title: title,
-		File:  file,
 	}
 
-	fmt.Println(video)
+	if _, err := io.Copy(&video, file); err != nil {
+		sendError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	fmt.Println(video)aklwhjliawjhil
 }

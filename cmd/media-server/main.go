@@ -11,19 +11,19 @@ import (
 var conf *config.Config
 
 func init() {
-	// Load config file
+	// Инициализация конфига (config.yaml + environments).
 	var err error
 
 	if conf, err = config.New("config.yaml"); err != nil {
 		logrus.Fatal(err)
 	}
 
+	// Конфигурация логгера
 	loglevel, err := logrus.ParseLevel(conf.Log.Level)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	// Logger configuration
 	logrus.SetLevel(loglevel)
 	logrus.SetFormatter(&logrus.TextFormatter{
 		PadLevelText: true,
@@ -36,17 +36,11 @@ func init() {
 }
 
 func main() {
-	store, err := minpq.New()
+	store, err := minpq.New(conf)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	_ = store
 
 	serv := http.NewServer(conf, store)
 	logrus.Fatal(serv.ListenAndServe())
-
-	// myfm, err := minio.New("ceaser-media-server", false)
-	// if err != nil {
-	// 	panic(err)
-	// }
 }

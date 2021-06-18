@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/av1ppp/ceaser-media-server/internal/config"
 	"github.com/av1ppp/ceaser-media-server/internal/fm"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -19,32 +19,29 @@ type Client struct {
 	minioClient *minio.Client
 }
 
-func New(bucketName string, useSSL bool) (fm.FileManager, error) {
+func New(conf config.MinioConfig) (fm.FileManager, error) {
 	ctx := context.Background()
-	accessKeyID := os.Getenv("MINIO_ACCESS_KEY")
-	secretAccessKey := os.Getenv("MINIO_SECRET_KEY")
-	endpoint := os.Getenv("MINIO_ENDPOINT")
 
-	if endpoint == "" {
-		endpoint = "localhost:9000"
+	if conf.EndPoint == "" {
+		conf.EndPoint = "localhost:9000"
 	}
 
-	minioClient, err := minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
-		Secure: useSSL,
+	minioClient, err := minio.New(conf.EndPoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(conf.AccessKey, conf.SecretKey, ""),
+		Secure: conf.UseSSL,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	exists, err := minioClient.BucketExists(ctx, bucketName)
+	exists, err := minioClient.BucketExists(ctx, conf.BucketName)
 	if err != nil {
 		return nil, err
 	}
 
 	if !exists {
 		if err := minioClient.MakeBucket(
-			ctx, bucketName, minio.MakeBucketOptions{}); err != nil {
+			ctx, conf.BucketName, minio.MakeBucketOptions{}); err != nil {
 			return nil, err
 		}
 	}
@@ -52,7 +49,7 @@ func New(bucketName string, useSSL bool) (fm.FileManager, error) {
 	return &Client{
 		minioClient: minioClient,
 		ctx:         ctx,
-		bucketName:  bucketName,
+		bucketName:  conf.BucketName,
 	}, nil
 }
 
