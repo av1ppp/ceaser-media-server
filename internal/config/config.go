@@ -25,7 +25,7 @@ type ServerConfig struct {
 type MinioConfig struct {
 	AccessKey  string `yaml:"access_key" envconfig:"MINIO_ACCESS_KEY"`
 	SecretKey  string `yaml:"secret_key" envconfig:"MINIO_SECRET_KEY"`
-	BucketName string `yaml:"bucket" envconfig:"MINIO_BUCKET" default:"media_server"`
+	BucketName string `yaml:"bucket" envconfig:"MINIO_BUCKET" default:"media-server"`
 
 	EndPoint string `yaml:"endpoint" envconfig:"MINIO_ENDPOINT" default:"localhost:9000"`
 	UseSSL   bool   `yaml:"ssl"`

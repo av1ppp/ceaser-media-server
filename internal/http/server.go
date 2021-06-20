@@ -11,12 +11,14 @@ import (
 type Server struct {
 	handler http.Handler
 	conf    *config.Config
+	store   store.Store
 }
 
 // Creating new server.
 func NewServer(conf *config.Config, s store.Store) *Server {
 	server := &Server{
-		conf: conf,
+		conf:  conf,
+		store: s,
 	}
 
 	server.handler = newHandler(server)

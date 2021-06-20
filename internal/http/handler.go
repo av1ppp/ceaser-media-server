@@ -13,8 +13,20 @@ func newHandler(server *Server) *chi.Mux {
 		sendStatus(w, http.StatusOK)
 	})
 
+	r.Get("/files/{filename}", func(w http.ResponseWriter, r *http.Request) {
+		data, err := server.store.File().GetDataByName(chi.URLParam(r, "filename"))
+		if err != nil {
+			sendError(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		w.Write(data)
+		sendStatus(w, http.StatusOK)
+	})
+
 	r.Route("/video", func(r chi.Router) {
-		r.Post("/", server.handleAddVideo) // POST /video
+		r.Post("/", server.handleAddVideo)                // POST /video
+		r.Get("/{videoID:[0-9]+}", server.handleGetVideo) // GET /video
 	})
 
 	return r

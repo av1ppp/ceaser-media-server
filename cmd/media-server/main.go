@@ -11,8 +11,12 @@ import (
 var conf *config.Config
 
 func init() {
-	// Инициализация конфига (config.yaml + environments).
+	// Инициализация конфига (config.yaml + environments + .env).
 	var err error
+
+	if err = godotenv.Load(); err != nil {
+		panic(err)
+	}
 
 	if conf, err = config.New("config.yaml"); err != nil {
 		logrus.Fatal(err)
@@ -28,11 +32,6 @@ func init() {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		PadLevelText: true,
 	})
-
-	// Load .env file
-	if err := godotenv.Load(); err != nil {
-		panic(err)
-	}
 }
 
 func main() {

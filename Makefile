@@ -1,4 +1,4 @@
-.PHONY: media-server
+.PHONY: serve
 
-media_server:
+serve:
 	go run -race cmd/media-server/main.go

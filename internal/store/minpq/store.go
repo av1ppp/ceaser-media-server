@@ -17,6 +17,7 @@ type Store struct {
 	fm              fm.FileManager
 	db              *sql.DB
 	videoRepository *videoRepository
+	fileRepository  *fileRepository
 }
 
 func New(conf *config.Config) (store.Store, error) {
@@ -31,6 +32,7 @@ func New(conf *config.Config) (store.Store, error) {
 	}
 
 	store.videoRepository = &videoRepository{store: &store}
+	store.fileRepository = &fileRepository{store: &store}
 
 	return &store, nil
 }
@@ -67,4 +69,8 @@ func (s *Store) configureDatabase(conf config.DBConfig) error {
 
 func (s *Store) Video() store.VideoRepository {
 	return s.videoRepository
+}
+
+func (s *Store) File() store.FileRepository {
+	return s.fileRepository
 }
