@@ -8,7 +8,8 @@ import (
 
 type VideoRepository interface {
 	Save(v *video.Video) error
-	Get(videoID int) (*video.Video, error)
+	GetByID(videoID int) (*video.Video, error)
+	Delete(videoID int) error
 }
 
 type FileRepository interface {

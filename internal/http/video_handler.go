@@ -10,14 +10,32 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func (s *Server) handleGetVideo(w http.ResponseWriter, r *http.Request) {
+func (s *Server) hDelVideo(w http.ResponseWriter, r *http.Request) {
 	videoID, err := strconv.Atoi(chi.URLParam(r, "videoID"))
 	if err != nil {
 		sendError(w, http.StatusBadRequest, err)
 		return
 	}
 
-	v, err := s.store.Video().Get(videoID)
+	if err := s.store.Video().Delete(videoID); err != nil {
+		sendError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	sendStatus(w, http.StatusOK)
+}
+
+func (s *Server) hGetManyVideos(w http.ResponseWriter, r *http.Request) {
+}
+
+func (s *Server) hGetOneVideo(w http.ResponseWriter, r *http.Request) {
+	videoID, err := strconv.Atoi(chi.URLParam(r, "videoID"))
+	if err != nil {
+		sendError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	v, err := s.store.Video().GetByID(videoID)
 	if err != nil {
 		sendError(w, http.StatusBadRequest, err)
 		return
@@ -25,11 +43,11 @@ func (s *Server) handleGetVideo(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: Вынести в models.go
 	data, err := json.Marshal(struct {
-		Title   string `json:"title"`
-		FileURL string `json:"fileUrl"`
+		Title string `json:"title"`
+		File  string `json:"file"`
 	}{
-		Title:   v.Title,
-		FileURL: s.conf.Server.Addr + "/files/" + v.Filename,
+		Title: v.Title,
+		File:  "/file/" + v.Filename,
 	})
 
 	if err != nil {
@@ -38,11 +56,11 @@ func (s *Server) handleGetVideo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(data)
-	sendStatus(w, http.StatusOK)
 }
 
-func (s *Server) handleAddVideo(w http.ResponseWriter, r *http.Request) {
+func (s *Server) hAddVideo(w http.ResponseWriter, r *http.Request) {
 	title := r.FormValue("title")
 	if title == "" {
 		sendError(w, http.StatusBadRequest, ErrTitleNotFound)

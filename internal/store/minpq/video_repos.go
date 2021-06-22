@@ -27,7 +27,7 @@ func (r *videoRepository) Save(v *video.Video) error {
 	return err
 }
 
-func (r *videoRepository) Get(videoID int) (*video.Video, error) {
+func (r *videoRepository) GetByID(videoID int) (*video.Video, error) {
 	v := video.Video{}
 
 	row := r.store.db.QueryRow("SELECT title, filename FROM videos WHERE id=$1", videoID)
@@ -43,4 +43,20 @@ func (r *videoRepository) Get(videoID int) (*video.Video, error) {
 	v.Write(data)
 
 	return &v, nil
+}
+
+func (r *videoRepository) Delete(videoID int) error {
+	filename := ""
+
+	row := r.store.db.QueryRow("SELECT filename FROM videos WHERE id=$1", videoID)
+	if err := row.Scan(&filename); err != nil {
+		return err
+	}
+
+	if err := r.store.fm.Remove(filename); err != nil {
+		return err
+	}
+
+	_, err := r.store.db.Exec("DELETE FROM videos WHERE id=$1", videoID)
+	return err
 }

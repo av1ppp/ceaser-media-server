@@ -13,20 +13,16 @@ func newHandler(server *Server) *chi.Mux {
 		sendStatus(w, http.StatusOK)
 	})
 
-	r.Get("/files/{filename}", func(w http.ResponseWriter, r *http.Request) {
-		data, err := server.store.File().GetDataByName(chi.URLParam(r, "filename"))
-		if err != nil {
-			sendError(w, http.StatusInternalServerError, err)
-			return
-		}
+	// Version 1
+	r.Route("/v1", func(r chi.Router) {
+		r.Get("/file/{filename}", server.hGetFile) // GET /v1/file/...
 
-		w.Write(data)
-		sendStatus(w, http.StatusOK)
-	})
-
-	r.Route("/video", func(r chi.Router) {
-		r.Post("/", server.handleAddVideo)                // POST /video
-		r.Get("/{videoID:[0-9]+}", server.handleGetVideo) // GET /video
+		r.Route("/videos", func(r chi.Router) {
+			r.Post("/", server.hAddVideo)                   // POST /v1/video
+			r.Get("/", server.hGetManyVideos)               // GET /v1/video
+			r.Get("/{videoID:[0-9]+}", server.hGetOneVideo) // GET /v1/video/.../
+			r.Delete("/{videoID:[0-9]+}", server.hDelVideo) // DELETE /v1/video/.../
+		})
 	})
 
 	return r
